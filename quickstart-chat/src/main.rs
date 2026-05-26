@@ -100,3 +100,21 @@ fn user_name_or_identity(user: &User) -> String {
         .clone()
         .unwrap_or_else(|| user.identity.to_hex().to_string())
 }
+
+/// Our `User::on_update` callback:
+/// print a notification about name and status changes.
+fn on_user_updated(_ctx: &EventContext, old: &User, new: &User) {
+    if old.name != new.name {
+        println!(
+            "User {} renamed to {}.",
+            user_name_or_identity(old),
+            user_name_or_identity(new)
+        );
+    }
+    if old.online && !new.online {
+        println!("User {} disconnected.", user_name_or_identity(new));
+    }
+    if !old.online && new.online {
+        println!("User {} connected.", user_name_or_identity(new));
+    }
+}
