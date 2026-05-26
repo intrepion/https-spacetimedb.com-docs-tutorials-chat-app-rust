@@ -146,3 +146,15 @@ fn subscribe_to_tables(ctx: &DbConnection) {
         .add_query(|q| q.from.message())
         .subscribe();
 }
+
+/// Our `on_subscription_applied` callback:
+/// sort all past messages and print them in timestamp order.
+fn on_sub_applied(ctx: &SubscriptionEventContext) {
+    let mut messages = ctx.db.message().iter().collect::<Vec<_>>();
+    messages.sort_by_key(|m| m.sent);
+    for message in messages {
+        print_message(ctx, &message);
+    }
+    println!("Fully connected and all subscriptions applied.");
+    println!("Use /name to set your name, or type a message!");
+}
