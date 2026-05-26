@@ -57,3 +57,20 @@ fn on_connected(_ctx: &DbConnection, _identity: Identity, token: &str) {
         eprintln!("Failed to save credentials: {:?}", e);
     }
 }
+
+/// Our `on_connect_error` callback: print the error, then exit the process.
+fn on_connect_error(_ctx: &ErrorContext, err: Error) {
+    eprintln!("Connection error: {:?}", err);
+    std::process::exit(1);
+}
+
+/// Our `on_disconnect` callback: print a note, then exit the process.
+fn on_disconnected(_ctx: &ErrorContext, err: Option<Error>) {
+    if let Some(err) = err {
+        eprintln!("Disconnected: {}", err);
+        std::process::exit(1);
+    } else {
+        println!("Disconnected.");
+        std::process::exit(0);
+    }
+}
