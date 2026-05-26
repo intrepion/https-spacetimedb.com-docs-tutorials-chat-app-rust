@@ -74,3 +74,15 @@ fn on_disconnected(_ctx: &ErrorContext, err: Option<Error>) {
         std::process::exit(0);
     }
 }
+
+/// Register all the callbacks our app will use to respond to database events.
+fn register_callbacks(ctx: &DbConnection) {
+    // When a new user joins, print a notification.
+    ctx.db.user().on_insert(on_user_inserted);
+
+    // When a user's status changes, print a notification.
+    ctx.db.user().on_update(on_user_updated);
+
+    // When a new message is received, print it.
+    ctx.db.message().on_insert(on_message_inserted);
+}
