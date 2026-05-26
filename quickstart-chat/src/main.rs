@@ -86,3 +86,17 @@ fn register_callbacks(ctx: &DbConnection) {
     // When a new message is received, print it.
     ctx.db.message().on_insert(on_message_inserted);
 }
+
+/// Our `User::on_insert` callback:
+/// if the user is online, print a notification.
+fn on_user_inserted(_ctx: &EventContext, user: &User) {
+    if user.online {
+        println!("User {} connected.", user_name_or_identity(user));
+    }
+}
+
+fn user_name_or_identity(user: &User) -> String {
+    user.name
+        .clone()
+        .unwrap_or_else(|| user.identity.to_hex().to_string())
+}
