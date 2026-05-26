@@ -53,3 +53,25 @@ fn validate_message(text: String) -> Result<String, String> {
         Ok(text)
     }
 }
+
+#[reducer(client_connected)]
+pub fn client_connected(ctx: &ReducerContext) {
+    if let Some(user) = ctx.db.user().identity().find(ctx.sender()) {
+        ctx.db.user().identity().update(User { online: true, ..user });
+    } else {
+        ctx.db.user().insert(User {
+            name: None,
+            identity: ctx.sender(),
+            online: true,
+        });
+    }
+}
+
+#[reducer(client_disconnected)]
+pub fn identity_disconnected(ctx: &ReducerContext) {
+    if let Some(user) = ctx.db.user().identity().find(ctx.sender()) {
+        ctx.db.user().identity().update(User { online: false, ..user });
+    } else {
+        log::warn!("Disconnect event for unknown user with identity {:?}", ctx.sender());
+    }
+}
