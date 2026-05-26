@@ -118,3 +118,21 @@ fn on_user_updated(_ctx: &EventContext, old: &User, new: &User) {
         println!("User {} connected.", user_name_or_identity(new));
     }
 }
+
+/// Our `Message::on_insert` callback: print new messages.
+fn on_message_inserted(ctx: &EventContext, message: &Message) {
+    if matches!(ctx.event, Event::Reducer(_) | Event::Transaction) {
+        print_message(ctx, message)
+    }
+}
+
+fn print_message(ctx: &impl RemoteDbContext, message: &Message) {
+    let sender = ctx
+        .db()
+        .user()
+        .identity()
+        .find(&message.sender.clone())
+        .map(|u| user_name_or_identity(&u))
+        .unwrap_or_else(|| "unknown".to_string());
+    println!("{}: {}", sender, message.text);
+}
