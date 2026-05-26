@@ -165,3 +165,34 @@ fn on_sub_error(_ctx: &ErrorContext, err: Error) {
     eprintln!("Subscription failed: {}", err);
     std::process::exit(1);
 }
+
+/// Read each line of standard input, and either set our name or send a message as appropriate.
+fn user_input_loop(ctx: &DbConnection) {
+    for line in std::io::stdin().lines() {
+        let Ok(line) = line else {
+            panic!("Failed to read from stdin.");
+        };
+        if let Some(name) = line.strip_prefix("/name ") {
+            ctx.reducers
+                .set_name_then(name.to_string(), {
+                    let name = name.to_string();
+                    move |_ctx, result| match result {
+                        Err(e) => panic!("Internal error when setting name: {e}"),
+                        Ok(Err(e)) => eprintln!("Failed to set name to {name}: {e}"),
+                        Ok(Ok(())) => (),
+                    }
+                })
+                .unwrap();
+        } else {
+            ctx.reducers
+                .send_message_then(line.clone(), {
+                    move |_ctx, result| match result {
+                        Err(e) => panic!("Internal error when sending message: {e}"),
+                        Ok(Err(e)) => eprintln!("Failed to send message {line:?}: {e}"),
+                        Ok(Ok(())) => (),
+                    }
+                })
+                .unwrap();
+        }
+    }
+}
