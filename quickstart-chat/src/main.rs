@@ -46,3 +46,14 @@ fn connect_to_db() -> DbConnection {
         .build()
         .expect("Failed to connect")
 }
+
+fn creds_store() -> credentials::File {
+    credentials::File::new("quickstart-chat")
+}
+
+/// Our `on_connect` callback: save our credentials to a file.
+fn on_connected(_ctx: &DbConnection, _identity: Identity, token: &str) {
+    if let Err(e) = creds_store().save(token) {
+        eprintln!("Failed to save credentials: {:?}", e);
+    }
+}
